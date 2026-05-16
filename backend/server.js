@@ -130,6 +130,16 @@ app.post('/api/admin/login', async (req, res) => {
 // Get Form Config (Published for Live Site)
 app.get('/api/form/config', async (req, res) => {
     try {
+        // First, check if the table exists to give a better error message
+        const [tables] = await pool.execute("SHOW TABLES LIKE 'form_configs'");
+        if (tables.length === 0) {
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Database setup incomplete. Please import your SQL file into TiDB.',
+                error_code: 'TABLE_NOT_FOUND'
+            });
+        }
+
         const [rows] = await pool.execute('SELECT * FROM form_configs WHERE status = "published" ORDER BY id DESC LIMIT 1');
         
         let configData = null;
@@ -139,14 +149,20 @@ app.get('/api/form/config', async (req, res) => {
 
         if (!configData) {
             const [drafts] = await pool.execute('SELECT * FROM form_configs ORDER BY id DESC LIMIT 1');
-            if (drafts.length === 0) return res.status(404).json({ success: false, message: 'No configuration found' });
+            if (drafts.length === 0) {
+                return res.status(404).json({ success: false, message: 'No configuration found in database' });
+            }
             configData = typeof drafts[0].config_json === 'string' ? JSON.parse(drafts[0].config_json) : drafts[0].config_json;
         }
         
         res.json({ success: true, config: configData, version: Date.now() });
     } catch (error) {
         console.error('DATABASE ERROR (GET /api/form/config):', error);
-        res.status(500).json({ success: false, message: 'Database error' });
+        res.status(500).json({ 
+            success: false, 
+            message: 'Database connection is active, but the query failed.',
+            details: error.message 
+        });
     }
 });
 
