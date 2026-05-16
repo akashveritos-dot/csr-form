@@ -16,6 +16,7 @@ import API_BASE_URL from './apiConfig';
 
 const FormEngine = () => {
   const [config, setConfig] = useState(null);
+  const [error, setError] = useState(null);
   const [step, setStep] = useState(0);
   const [isEditingFromReview, setIsEditingFromReview] = useState(false);
   const [formData, setFormData] = useState({});
@@ -25,40 +26,42 @@ const FormEngine = () => {
 
   const fetchConfig = useCallback(async () => {
     try {
+      setError(null);
       const urlParams = new URLSearchParams(window.location.search);
       const isPreview = urlParams.get('preview') === 'true';
       const token = localStorage.getItem('adminToken');
 
-      let endpoint = `${API_BASE_URL}/api/form/config`;
+      let endpoint = `${API_BASE_URL}/api/form/config?t=${Date.now()}`;
       let headers = {};
 
       if (isPreview && token) {
-        endpoint = `${API_BASE_URL}/api/admin/form/config/draft`;
+        endpoint = `${API_BASE_URL}/api/admin/form/config/latest?t=${Date.now()}`;
         headers = { 'Authorization': `Bearer ${token}` };
       }
 
       const response = await fetch(endpoint, { headers });
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      
       const data = await response.json();
       if (data.success) {
         setConfig(data.config);
         setFormVersion(data.version);
-        // Initialize form data based on fields
         const initial = {};
         data.config.steps.forEach(s => {
           if (s.fields) s.fields.forEach(f => initial[f.id] = '');
         });
         setFormData(initial);
+      } else {
+        throw new Error(data.message || 'Failed to load configuration');
       }
     } catch (err) {
       console.error('Failed to fetch form config', err);
+      setError(err.message);
     }
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      await fetchConfig();
-    };
-    init();
+    fetchConfig();
   }, [fetchConfig]);
 
   const handleNext = () => {
@@ -138,14 +141,24 @@ const FormEngine = () => {
     return (step / (config.steps.length - 1)) * 100;
   };
 
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff', textAlign: 'center', padding: '20px' }}>
+        <div style={{ maxWidth: '400px' }}>
+          <div style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Connection Failed</div>
+          <p style={{ opacity: 0.8, marginBottom: '2rem', fontSize: '0.9rem' }}>{error}</p>
+          <button onClick={() => window.location.reload()} className="btn-primary" style={{ background: '#333' }}>Retry Connection</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!config) {
     return (
-      <div className="form-container" style={{ minHeight: '100vh', justifyContent: 'center', alignItems: 'center', color: '#fff' }}>
-        <div className="background-glow"></div>
-        <div style={{ textAlign: 'center' }}>
-          <img src="https://thecsruniverse.com/assets/images/logo.png" alt="Logo" style={{ height: '40px', marginBottom: '2rem', animation: 'pulse 2s infinite' }} />
-          <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING YOUR EXPERIENCE...</div>
-          <p style={{ opacity: 0.6, marginTop: '10px' }}>Loading the latest form configuration</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
+        <div className="loader-content">
+          <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
         </div>
       </div>
     );
