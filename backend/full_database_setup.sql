@@ -48,88 +48,97 @@ CREATE TABLE IF NOT EXISTS `notifications` (
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
--- 2. INSERT INITIAL DATA
+-- 2. REAL DATA EXPORTED FROM LOCAL DB
 -- ---------------------------------------------------------
 
--- Initial Admin User (Username: akash | Password: password123)
--- Password hashed using bcrypt
-INSERT INTO
-    `admin_users` (
-        `username`,
-        `password`,
-        `full_name`
-    )
-VALUES (
-        'akash',
-        '$2a$10$7R.p5L1q0F1Q6H7X/E.5UuW6A.6.M.M.M.M.M.M.M.M.M.M.M',
-        'Akash'
-    );
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
--- Initial Published Form Configuration (Full SICA/CASCA Dynamic Setup)
-INSERT INTO
-    `form_configs` (
-        `config_json`,
-        `status`,
-        `version`
-    )
-VALUES (
-        '{
+-- Data for form_configs
+INSERT INTO `form_configs` (`id`, `config_json`, `status`, `version`, `created_at`, `published_at`) VALUES
+(1, '{
   "steps": [
-    {
-      "type": "event",
-      "id": "sica_2025",
-      "tag": "PAST EVENT SPOTLIGHT",
-      "title": "SICA’25",
-      "subtitle": "5th Social Impact Conference & Awards 2025",
-      "image": "https://thecsruniverse.com/assets/events_files/images/SICA%2725-Web-banner-11.png",
-      "description": "A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.",
-      "images": [
-        "https://via.placeholder.com/400x400?text=SICA+Gallery+1",
-        "https://via.placeholder.com/400x400?text=SICA+Gallery+2",
-        "https://via.placeholder.com/400x400?text=SICA+Gallery+3"
-      ]
-    },
-    {
-      "type": "event",
-      "id": "casca_2024",
-      "tag": "UPCOMING OPPORTUNITY",
-      "title": "CASCA’24",
-      "subtitle": "Corporate Social Collaboration Awards",
-      "image": "https://via.placeholder.com/800x400?text=CASCA+Banner",
-      "description": "Celebrating the most impactful collaborations between corporates and implementing agencies in the CSR ecosystem.",
-      "images": []
-    },
-    {
-      "type": "form",
-      "title": "Partner With Us",
-      "fields": [
-        { "id": "org_name", "label": "Organization Name", "type": "text", "placeholder": "Enter your org name", "required": true },
-        { "id": "contact_name", "label": "Contact Person", "type": "text", "placeholder": "Your Name", "required": true },
-        { "id": "email", "label": "Email Address", "type": "email", "placeholder": "email@example.com", "required": true },
-        { "id": "phone", "label": "Phone Number", "type": "tel", "placeholder": "+91 00000 00000", "required": true }
-      ]
-    },
-    {
-      "type": "form",
-      "title": "Select Sponsorship Package",
-      "fields": [
-        {
-          "id": "selected_package",
-          "label": "Choose your package",
-          "type": "package_select",
-          "required": true
-        }
-      ],
-      "packages": [
-        { "id": "silver", "name": "Silver Partner", "price": "₹2 Lakhs", "features": ["Logo in event area", "2 Delegate passes", "Social media mention"] },
-        { "id": "gold", "name": "Gold Partner", "price": "₹5 Lakhs", "features": ["Featured logo on stage", "5 Delegate passes", "10-minute presentation slot", "Interview in newsletter"] },
-        { "id": "platinum", "name": "Platinum Partner", "price": "₹10 Lakhs", "features": ["Title branding", "Premium booth space", "VIP seating", "Cover story feature"] }
-      ]
-    }
+    {"type": "hero", "title": "Partner With Us", "description": "Amplify Your Social Impact Through India''s Leading CSR & Sustainability Media Ecosystem"},
+    {"type": "form", "fields": [{"id": "email", "label": "Enter Your Email", "type": "email", "required": true}]},
+    {"type": "form", "fields": [{"id": "full_name", "label": "What''s Your Full Name?", "type": "text", "required": true}]},
+    {"type": "event", "id": "sica25", "title": "SICA’25", "tag": "Past Event Spotlight"},
+    {"type": "form", "fields": [{"id": "designation", "label": "What''s Your Designation?", "type": "text", "required": true}]},
+    {"type": "form", "fields": [{"id": "phone_number", "label": "Enter Your Phone Number", "type": "tel", "required": true}]},
+    {"type": "form", "fields": [{"id": "organization_name", "label": "Organisation / Company Name", "type": "text", "required": true}]},
+    {"type": "event", "id": "casca26", "title": "CASCA’26", "tag": "Past Event Spotlight"},
+    {"type": "form", "fields": [{"id": "selected_package", "label": "Select a Partnership Package", "type": "package_select", "required": true}]},
+    {"type": "form", "fields": [{"id": "custom_query", "label": "Exploring Customized Partnership?", "type": "textarea", "required": false}]},
+    {"type": "review", "title": "Review Your Details"},
+    {"type": "success", "title": "Let''s Build Meaningful Impact Together"}
   ]
-}',
-        'published',
-        1
-    );
+}', 'published', 1, '2026-05-16 14:15:05', NULL),
+(2, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India''s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What''s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","title":"SICA’25","tag":"Past Event Spotlight"},{"type":"form","fields":[{"id":"designation","label":"What''s Your Designation?","type":"text","required":true}]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"event","id":"casca26","title":"CASCA’26","tag":"Past Event Spotlight"},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Let''s Build Meaningful Impact Together"}]}', 'draft', 1, '2026-05-16 14:24:43', NULL),
+(3, '{
+  "steps": [
+    { "type": "hero", "title": "Partner With Us", "description": "Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem" },
+    { "type": "form", "fields": [{ "id": "email", "label": "Enter Your Email Address", "type": "email", "required": true }] },
+    { "type": "form", "fields": [{ "id": "full_name", "label": "What’s Your Full Name?", "type": "text", "required": true }] },
+    { 
+      "type": "event", 
+      "id": "sica25", 
+      "tag": "Past Event Spotlight", 
+      "title": "SICA’25", 
+      "subtitle": "5th Social Impact Conference & Awards 2025",
+      "description": "A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.",
+      "image": "https://thecsruniverse.com/assets/images/sica_hero.jpg",
+      "images": [
+        "https://via.placeholder.com/400x400?text=SICA+1",
+        "https://via.placeholder.com/400x400?text=SICA+2",
+        "https://via.placeholder.com/400x400?text=SICA+3"
+      ]
+    },
+    { "type": "form", "fields": [{ "id": "designation", "label": "What’s Your Designation?", "type": "text", "required": true }] },
+    { 
+      "type": "event", 
+      "id": "casca26", 
+      "tag": "Upcoming Spotlight", 
+      "title": "CASCA’26", 
+      "subtitle": "Climate Action & Sustainability Conference & Awards 2026",
+      "description": "Connecting environmental leaders to drive conversations around climate action and sustainable growth.",
+      "image": "https://thecsruniverse.com/assets/images/casca_hero.jpg",
+      "images": [
+        "https://via.placeholder.com/400x400?text=CASCA+1",
+        "https://via.placeholder.com/400x400?text=CASCA+2"
+      ]
+    },
+    { "type": "form", "fields": [{ "id": "phone_number", "label": "Enter Your Phone Number", "type": "tel", "required": true }] },
+    { "type": "form", "fields": [{ "id": "organization_name", "label": "Organisation / Company Name", "type": "text", "required": true }] },
+    { 
+      "type": "form", 
+      "fields": [{ "id": "selected_package", "label": "Select a Partnership Package", "type": "package_select", "required": true }],
+      "packages": [
+        { "id": "p1", "name": "1 Month Coverage", "price": "₹15,000 + GST", "features": ["2 News", "1 Interview", "Social Media Promotion"] },
+        { "id": "p2", "name": "4 Month Coverage", "price": "₹40,000 + GST", "features": ["4 News", "1 Video Interview", "Opinion Piece", "Delegate Pass"] },
+        { "id": "p3", "name": "Event Media Partnership", "price": "₹50,000 + GST", "features": ["Pre/During/Post Event Coverage", "Editorial Support"] }
+      ]
+    },
+    { "type": "form", "fields": [{ "id": "custom_query", "label": "Exploring Customized Partnership?", "type": "textarea", "required": false }] },
+    { "type": "review", "title": "Review Your Details" },
+    { "type": "success", "title": "Application Received" }
+  ]
+}', 'published', 1, '2026-05-16 14:39:36', NULL),
+(4, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"https://thecsruniverse.com/assets/images/sica_hero.jpg","images":["https://via.placeholder.com/400x400?text=SICA+1","https://via.placeholder.com/400x400?text=SICA+2","https://via.placeholder.com/400x400?text=SICA+3"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"https://thecsruniverse.com/assets/images/casca_hero.jpg","images":["https://via.placeholder.com/400x400?text=CASCA+1","https://via.placeholder.com/400x400?text=CASCA+2"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'draft', 1, '2026-05-16 14:41:53', NULL),
+(5, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"https://thecsruniverse.com/assets/events_files/images/SICA''25-Web-banner-11.png","images":["https://via.placeholder.com/400x400?text=SICA+1","https://via.placeholder.com/400x400?text=SICA+2","https://via.placeholder.com/400x400?text=SICA+3"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"https://thecsruniverse.com/assets/images/casca_hero.jpg","images":["https://via.placeholder.com/400x400?text=CASCA+1","https://via.placeholder.com/400x400?text=CASCA+2"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'draft', 1, '2026-05-16 14:46:28', NULL),
+(6, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"https://thecsruniverse.com/assets/images/sica_hero.jpg","images":["https://via.placeholder.com/400x400?text=SICA+1","https://via.placeholder.com/400x400?text=SICA+2","https://via.placeholder.com/400x400?text=SICA+3"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"https://thecsruniverse.com/assets/images/casca_hero.jpg","images":["https://via.placeholder.com/400x400?text=CASCA+1","https://via.placeholder.com/400x400?text=CASCA+2"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'draft', 1, '2026-05-16 14:48:39', NULL),
+(7, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"http://localhost:5000/uploads/1778948570817-SICA''25-Web-banner-11.png","images":["https://via.placeholder.com/400x400?text=SICA+1","https://via.placeholder.com/400x400?text=SICA+2","https://via.placeholder.com/400x400?text=SICA+3"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"https://thecsruniverse.com/assets/images/casca_hero.jpg","images":["https://via.placeholder.com/400x400?text=CASCA+1","https://via.placeholder.com/400x400?text=CASCA+2"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'published', 1, '2026-05-16 16:23:04', NULL),
+(8, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"http://localhost:5000/uploads/1778948570817-SICA''25-Web-banner-11.png","images":["http://localhost:5000/uploads/1778948628649-SICAâ25-Web-banner-Jury-11.png","http://localhost:5000/uploads/1778948632349-SICAâ25-Web-banner-Jury-11.png","http://localhost:5000/uploads/1778948636119-SICAâ25-Web-banner-Jury-11.png"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"https://thecsruniverse.com/assets/images/casca_hero.jpg","images":["https://via.placeholder.com/400x400?text=CASCA+1","https://via.placeholder.com/400x400?text=CASCA+2"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'published', 1, '2026-05-16 16:25:42', NULL),
+(9, '{"steps":[{"type":"hero","title":"Partner With Us","description":"Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem"},{"type":"form","fields":[{"id":"email","label":"Enter Your Email Address","type":"email","required":true}]},{"type":"form","fields":[{"id":"full_name","label":"What’s Your Full Name?","type":"text","required":true}]},{"type":"event","id":"sica25","tag":"Past Event Spotlight","title":"SICA’25","subtitle":"5th Social Impact Conference & Awards 2025","description":"A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.","image":"http://localhost:5000/uploads/1778948570817-SICA''25-Web-banner-11.png","images":["http://localhost:5000/uploads/1778948628649-SICAâ25-Web-banner-Jury-11.png","http://localhost:5000/uploads/1778948632349-SICAâ25-Web-banner-Jury-11.png","http://localhost:5000/uploads/1778948636119-SICAâ25-Web-banner-Jury-11.png"]},{"type":"form","fields":[{"id":"designation","label":"What’s Your Designation?","type":"text","required":true}]},{"type":"event","id":"casca26","tag":"Upcoming Spotlight","title":"CASCA’26","subtitle":"Climate Action & Sustainability Conference & Awards 2026","description":"Connecting environmental leaders to drive conversations around climate action and sustainable growth.","image":"http://localhost:5000/uploads/1778948839635-casca_26.jpg","images":["http://localhost:5000/uploads/1778948846999-casb_2.jpg","http://localhost:5000/uploads/1778948854435-casb_2.jpg"]},{"type":"form","fields":[{"id":"phone_number","label":"Enter Your Phone Number","type":"tel","required":true}]},{"type":"form","fields":[{"id":"organization_name","label":"Organisation / Company Name","type":"text","required":true}]},{"type":"form","fields":[{"id":"selected_package","label":"Select a Partnership Package","type":"package_select","required":true}],"packages":[{"id":"p1","name":"1 Month Coverage","price":"₹15,000 + GST","features":["2 News","1 Interview","Social Media Promotion"]},{"id":"p2","name":"4 Month Coverage","price":"₹40,000 + GST","features":["4 News","1 Video Interview","Opinion Piece","Delegate Pass"]},{"id":"p3","name":"Event Media Partnership","price":"₹50,000 + GST","features":["Pre/During/Post Event Coverage","Editorial Support"]}]},{"type":"form","fields":[{"id":"custom_query","label":"Exploring Customized Partnership?","type":"textarea","required":false}]},{"type":"review","title":"Review Your Details"},{"type":"success","title":"Application Received"}]}', 'published', 1, '2026-05-16 16:27:40', NULL);
+
+-- Data for admins
+INSERT INTO `admins` (`id`, `username`, `password`, `email`, `created_at`) VALUES
+(1, 'admin', '$2b$10$/gvsaspTovHjCJ3hG6b8MuRnfw57qm49VhFDydwr8IouKTpUCPEQu', 'admin@thecsruniverse.com', '2026-05-16 14:15:05');
+
+-- Data for form_submissions_v2
+INSERT INTO `form_submissions_v2` (`id`, `submission_data`, `form_version`, `is_read`, `status`, `device_info`, `created_at`) VALUES
+(1, '{"email":"akthakur8080@gmail.com","full_name":"Akash","designation":"kash","phone_number":"7018619880","organization_name":"ak","selected_package":"1_month_coverage","custom_query":"Akash\nok"}', 1, 1, 'pending', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 | Google Inc.', '2026-05-16 14:27:40');
+
+-- Data for notifications
+INSERT INTO `notifications` (`id`, `message`, `is_seen`, `created_at`) VALUES
+(1, 'New partnership request from ak', 0, '2026-05-16 14:27:40');
 
 SET FOREIGN_KEY_CHECKS = 1;
