@@ -3,7 +3,6 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -117,8 +116,11 @@ app.post('/api/admin/login', async (req, res) => {
         if (rows.length === 0) return res.status(404).json({ success: false, message: 'Admin not found' });
 
         const admin = rows[0];
-        const validPass = await bcrypt.compare(password, admin.password);
-        if (!validPass) return res.status(401).json({ success: false, message: 'Invalid password' });
+        
+        // Simple plain text comparison as requested
+        if (password !== admin.password) {
+            return res.status(401).json({ success: false, message: 'Invalid password' });
+        }
 
         const token = jwt.sign({ id: admin.id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '12h' });
         res.json({ success: true, token });
