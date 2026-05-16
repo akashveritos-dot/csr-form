@@ -45,12 +45,23 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: process.env.DB_SSL === 'true' ? {
+        minVersion: 'TLSv1.2',
         rejectUnauthorized: false
     } : null,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
+
+// Test connection on startup
+pool.getConnection()
+    .then(conn => {
+        console.log('✅ Connected to TiDB successfully!');
+        conn.release();
+    })
+    .catch(err => {
+        console.error('❌ DATABASE CONNECTION FAILED:', err.message);
+    });
 
 // Middleware to verify Admin JWT
 const authenticateAdmin = (req, res, next) => {
