@@ -11,11 +11,11 @@ const fs = require('fs');
 dotenv.config();
 
 const app = express();
-app.use(cors({
-  origin: [process.env.FRONTEND_URL, 'http://localhost:5173'].filter(Boolean),
-  credentials: true
-}));
+app.use(cors()); // Allow all for prototype stability
 app.use(express.json());
+
+// Health Check for Deployment
+app.get('/api/health', (req, res) => res.json({ status: 'live', time: new Date() }));
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
