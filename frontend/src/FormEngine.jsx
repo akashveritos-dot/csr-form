@@ -14,12 +14,76 @@ import {
 } from './Steps';
 import API_BASE_URL from './apiConfig';
 
+const FALLBACK_CONFIG = {
+  steps: [
+    { type: "hero", title: "Partner With Us", description: "Amplify Your Social Impact Through India’s Leading CSR & Sustainability Media Ecosystem" },
+    { type: "form", fields: [{ id: "email", label: "Enter Your Email Address", type: "email", required: true }] },
+    { type: "form", fields: [{ id: "full_name", label: "What’s Your Full Name?", type: "text", required: true }] },
+    { 
+      type: "event", 
+      id: "sica25", 
+      tag: "Past Event Spotlight", 
+      title: "SICA’25", 
+      subtitle: "5th Social Impact Conference & Awards 2025",
+      description: "A flagship national conference bringing together CSR leaders and NGOs to drive social transformation across India.",
+      image: "https://thecsruniverse.com/assets/images/sica_hero.jpg",
+      images: [
+        "https://via.placeholder.com/400x400?text=SICA+1",
+        "https://via.placeholder.com/400x400?text=SICA+2",
+        "https://via.placeholder.com/400x400?text=SICA+3"
+      ]
+    },
+    { type: "form", fields: [{ id: "designation", label: "What’s Your Designation?", type: "text", required: true }] },
+    { 
+      type: "event", 
+      id: "casca26", 
+      tag: "Upcoming Spotlight", 
+      title: "CASCA’26", 
+      subtitle: "Climate Action & Sustainability Conference & Awards 2026",
+      description: "Connecting environmental leaders to drive conversations around climate action and sustainable growth.",
+      image: "https://thecsruniverse.com/assets/images/casca_hero.jpg",
+      images: [
+        "https://via.placeholder.com/400x400?text=CASCA+1",
+        "https://via.placeholder.com/400x400?text=CASCA+2"
+      ]
+    },
+    { type: "form", fields: [{ id: "phone_number", label: "Enter Your Phone Number", type: "tel", required: true }] },
+    { type: "form", fields: [{ id: "organization_name", label: "Organisation / Company Name", type: "text", required: true }] },
+    { 
+      type: "form", 
+      fields: [{ id: "selected_package", label: "Select a Partnership Package", type: "package_select", required: true }],
+      packages: [
+        { id: "p1", name: "1 Month Coverage", price: "₹15,000 + GST", features: ["2 News", "1 Interview", "Social Media Promotion"] },
+        { id: "p2", name: "4 Month Coverage", price: "₹40,000 + GST", features: ["4 News", "1 Video Interview", "Opinion Piece", "Delegate Pass"] },
+        { id: "p3", name: "Event Media Partnership", price: "₹50,000 + GST", features: ["Pre/During/Post Event Coverage", "Editorial Support"] }
+      ]
+    },
+    { type: "form", fields: [{ id: "custom_query", label: "Exploring Customized Partnership?", type: "textarea", required: false }] },
+    { type: "review", title: "Review Your Details" },
+    { type: "success", title: "Application Received" }
+  ]
+};
+
 const FormEngine = () => {
-  const [config, setConfig] = useState(null);
+  const [config, setConfig] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPreview = urlParams.get('preview') === 'true';
+    return isPreview ? null : FALLBACK_CONFIG;
+  });
   const [error, setError] = useState(null);
   const [step, setStep] = useState(0);
   const [isEditingFromReview, setIsEditingFromReview] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(() => {
+    const initial = {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPreview = urlParams.get('preview') === 'true';
+    if (!isPreview) {
+      FALLBACK_CONFIG.steps.forEach(s => {
+        if (s.fields) s.fields.forEach(f => initial[f.id] = '');
+      });
+    }
+    return initial;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [formVersion, setFormVersion] = useState(1);
@@ -46,22 +110,37 @@ const FormEngine = () => {
       if (data.success) {
         setConfig(data.config);
         setFormVersion(data.version);
-        const initial = {};
-        data.config.steps.forEach(s => {
-          if (s.fields) s.fields.forEach(f => initial[f.id] = '');
+        setFormData(prev => {
+          const initial = { ...prev };
+          data.config.steps.forEach(s => {
+            if (s.fields) {
+              s.fields.forEach(f => {
+                if (initial[f.id] === undefined) {
+                  initial[f.id] = '';
+                }
+              });
+            }
+          });
+          return initial;
         });
-        setFormData(initial);
       } else {
         throw new Error(data.message || 'Failed to load configuration');
       }
     } catch (err) {
       console.error('Failed to fetch form config', err);
-      setError(err.message);
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPreview = urlParams.get('preview') === 'true';
+      if (isPreview) {
+        setError(err.message);
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchConfig();
+    const timer = setTimeout(() => {
+      fetchConfig();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchConfig]);
 
   const handleNext = () => {
@@ -107,7 +186,6 @@ const FormEngine = () => {
     }
   };
 
-  if (!config) return <div className="form-container">Loading experience...</div>;
 
   const currentStepConfig = config.steps[step];
 
