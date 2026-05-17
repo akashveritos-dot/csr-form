@@ -79,12 +79,11 @@ const authenticateAdmin = (req, res, next) => {
     }
 };
 
-// Helper to dynamically translate localhost uploads to production URLs
 const sanitizeUrls = (req, configJson) => {
     if (!configJson) return null;
     let configStr = typeof configJson === 'string' ? configJson : JSON.stringify(configJson);
-    const protocol = req.protocol;
     const host = req.get('host');
+    const protocol = host.includes('localhost') ? 'http' : 'https';
     const productionBaseUrl = `${protocol}://${host}`;
     configStr = configStr.replace(/http:\/\/localhost:5000/g, productionBaseUrl);
     return JSON.parse(configStr);
