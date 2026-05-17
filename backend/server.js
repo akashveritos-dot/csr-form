@@ -13,6 +13,9 @@ const app = express();
 app.use(cors()); // Allow all for prototype stability
 app.use(express.json());
 
+// In-memory cache to completely bypass database queries on subsequent loads
+let cachedConfig = null;
+
 // Health Check for Deployment
 app.get('/api/health', (req, res) => res.json({ status: 'live', time: new Date() }));
 
@@ -100,7 +103,7 @@ app.post('/api/admin/upload', (req, res, next) => {
 app.get('/api/admin/form/config/drafts', authenticateAdmin, async (req, res) => {
     try {
         const [rows] = await pool.execute(
-            'SELECT id, updated_at, status FROM form_configs ORDER BY updated_at DESC'
+            'SELECT id, created_at AS updated_at, status FROM form_configs ORDER BY created_at DESC'
         );
         res.json({ success: true, drafts: rows });
     } catch (err) {
@@ -129,40 +132,44 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-// Get Form Config (Published for Live Site)
+// Get Form Config (Published for Live Site) with O(1) In-Memory Caching
 app.get('/api/form/config', async (req, res) => {
+    // Serve from cache instantly in under 1ms if available
+    if (cachedConfig) {
+        return res.json({ success: true, config: cachedConfig.config, version: cachedConfig.version });
+    }
+
     try {
-        // First, check if the table exists to give a better error message
-        const [tables] = await pool.execute("SHOW TABLES LIKE 'form_configs'");
-        if (tables.length === 0) {
+        // Highly optimized single query prioritizing status="published" then sorting by id
+        const [rows] = await pool.execute(
+            'SELECT config_json, id FROM form_configs ORDER BY (status = "published") DESC, id DESC LIMIT 1'
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'No configuration found in database' });
+        }
+
+        const configData = typeof rows[0].config_json === 'string' ? JSON.parse(rows[0].config_json) : rows[0].config_json;
+        
+        // Cache the parsed result
+        cachedConfig = {
+            config: configData,
+            version: rows[0].id || 1
+        };
+
+        res.json({ success: true, config: cachedConfig.config, version: cachedConfig.version });
+    } catch (error) {
+        console.error('DATABASE ERROR (GET /api/form/config):', error);
+        if (error.code === 'ER_NO_SUCH_TABLE') {
             return res.status(500).json({ 
                 success: false, 
                 message: 'Database setup incomplete. Please import your SQL file into TiDB.',
                 error_code: 'TABLE_NOT_FOUND'
             });
         }
-
-        const [rows] = await pool.execute('SELECT * FROM form_configs WHERE status = "published" ORDER BY id DESC LIMIT 1');
-        
-        let configData = null;
-        if (rows.length > 0) {
-            configData = typeof rows[0].config_json === 'string' ? JSON.parse(rows[0].config_json) : rows[0].config_json;
-        }
-
-        if (!configData) {
-            const [drafts] = await pool.execute('SELECT * FROM form_configs ORDER BY id DESC LIMIT 1');
-            if (drafts.length === 0) {
-                return res.status(404).json({ success: false, message: 'No configuration found in database' });
-            }
-            configData = typeof drafts[0].config_json === 'string' ? JSON.parse(drafts[0].config_json) : drafts[0].config_json;
-        }
-        
-        res.json({ success: true, config: configData, version: Date.now() });
-    } catch (error) {
-        console.error('DATABASE ERROR (GET /api/form/config):', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Database connection is active, but the query failed.',
+            message: 'Database connection failed.',
             details: error.message 
         });
     }
@@ -215,6 +222,10 @@ app.post('/api/admin/form/config', authenticateAdmin, async (req, res) => {
     const { config, status } = req.body;
     try {
         await pool.execute('INSERT INTO form_configs (config_json, status) VALUES (?, ?)', [JSON.stringify(config), status || 'draft']);
+        
+        // Invalidate in-memory cache so next visitor queries fresh data
+        cachedConfig = null;
+
         res.json({ success: true, message: `Configuration saved as ${status || 'draft'}` });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
