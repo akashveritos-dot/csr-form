@@ -68,6 +68,10 @@ const FormEngine = () => {
   }, [fetchConfig]);
 
   const handleNext = () => {
+    if (step === 0) {
+      setStep(1);
+      return;
+    }
     if (isEditingFromReview) {
       setStep(config.steps.findIndex(s => s.type === 'review'));
       setIsEditingFromReview(false);
@@ -100,7 +104,13 @@ const FormEngine = () => {
         }),
       });
       const data = await response.json();
-      if (data.success) setStep(config.steps.length - 1); // Jump to success
+      if (data.success) {
+        if (config) {
+          setStep(config.steps.length - 1); // Jump to success
+        } else {
+          setStep(prev => prev + 1);
+        }
+      }
       else setSubmitError(data.message || 'Submission failed');
     } catch (error) {
       console.error('Submit error:', error);
@@ -111,32 +121,39 @@ const FormEngine = () => {
   };
 
 
-  if (error) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff', textAlign: 'center', padding: '20px' }}>
-        <div style={{ maxWidth: '400px' }}>
-          <div style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Connection Failed</div>
-          <p style={{ opacity: 0.8, marginBottom: '2rem', fontSize: '0.9rem' }}>{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-primary" style={{ background: '#333' }}>Retry Connection</button>
+  if (step > 0) {
+    if (error) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff', textAlign: 'center', padding: '20px' }}>
+          <div style={{ maxWidth: '400px' }}>
+            <div style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Connection Failed</div>
+            <p style={{ opacity: 0.8, marginBottom: '2rem', fontSize: '0.9rem' }}>{error}</p>
+            <button onClick={() => window.location.reload()} className="btn-primary" style={{ background: '#333' }}>Retry Connection</button>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (!config) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
-        <div className="loader-content">
-          <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
+    if (!config) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
+          <div className="loader-content">
+            <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
-
-  const currentStepConfig = config.steps[step];
 
   const renderDynamicStep = () => {
+    if (step === 0) {
+      return <HeroStep onNext={handleNext} />;
+    }
+
+    if (!config) return null;
+
+    const currentStepConfig = config.steps[step];
     switch (currentStepConfig.type) {
       case 'hero': return <HeroStep onNext={handleNext} />;
       case 'form': {
@@ -163,6 +180,7 @@ const FormEngine = () => {
   };
 
   const calculateProgress = () => {
+    if (!config) return 0;
     return (step / (config.steps.length - 1)) * 100;
   };
 
@@ -174,7 +192,7 @@ const FormEngine = () => {
         <img src="https://thecsruniverse.com/assets/images/logo.png" alt="CSR" style={{ height: '35px' }} />
       </header>
 
-      {step > 0 && step < config.steps.length - 1 && (
+      {config && step > 0 && step < config.steps.length - 1 && (
         <div className="progress-container">
           <div className="progress-bar" style={{ width: `${calculateProgress()}%` }}></div>
         </div>
