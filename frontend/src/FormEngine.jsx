@@ -111,6 +111,29 @@ const FormEngine = () => {
   };
 
 
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff', textAlign: 'center', padding: '20px' }}>
+        <div style={{ maxWidth: '400px' }}>
+          <div style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Connection Failed</div>
+          <p style={{ opacity: 0.8, marginBottom: '2rem', fontSize: '0.9rem' }}>{error}</p>
+          <button onClick={() => window.location.reload()} className="btn-primary" style={{ background: '#333' }}>Retry Connection</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
+        <div className="loader-content">
+          <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
+        </div>
+      </div>
+    );
+  }
+
   const currentStepConfig = config.steps[step];
 
   const renderDynamicStep = () => {
@@ -142,29 +165,6 @@ const FormEngine = () => {
   const calculateProgress = () => {
     return (step / (config.steps.length - 1)) * 100;
   };
-
-  if (error) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff', textAlign: 'center', padding: '20px' }}>
-        <div style={{ maxWidth: '400px' }}>
-          <div style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Connection Failed</div>
-          <p style={{ opacity: 0.8, marginBottom: '2rem', fontSize: '0.9rem' }}>{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-primary" style={{ background: '#333' }}>Retry Connection</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!config) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
-        <div className="loader-content">
-          <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">
