@@ -86,6 +86,9 @@ const sanitizeUrls = (req, configJson) => {
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const productionBaseUrl = `${protocol}://${host}`;
     configStr = configStr.replace(/http:\/\/localhost:5000/g, productionBaseUrl);
+    if (!host.includes('localhost')) {
+        configStr = configStr.replace(/http:\/\/csr-form.onrender.com/g, 'https://csr-form.onrender.com');
+    }
     return JSON.parse(configStr);
 };
 
