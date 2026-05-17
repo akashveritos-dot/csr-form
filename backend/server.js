@@ -79,6 +79,17 @@ const authenticateAdmin = (req, res, next) => {
     }
 };
 
+// Helper to dynamically translate localhost uploads to production URLs
+const sanitizeUrls = (req, configJson) => {
+    if (!configJson) return null;
+    let configStr = typeof configJson === 'string' ? configJson : JSON.stringify(configJson);
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const productionBaseUrl = `${protocol}://${host}`;
+    configStr = configStr.replace(/http:\/\/localhost:5000/g, productionBaseUrl);
+    return JSON.parse(configStr);
+};
+
 // --- ADMIN ROUTES ---
 
 // Upload Endpoint
@@ -136,7 +147,8 @@ app.post('/api/admin/login', async (req, res) => {
 app.get('/api/form/config', async (req, res) => {
     // Serve from cache instantly in under 1ms if available
     if (cachedConfig) {
-        return res.json({ success: true, config: cachedConfig.config, version: cachedConfig.version });
+        const sanitized = sanitizeUrls(req, cachedConfig.config);
+        return res.json({ success: true, config: sanitized, version: cachedConfig.version });
     }
 
     try {
@@ -149,15 +161,16 @@ app.get('/api/form/config', async (req, res) => {
             return res.status(404).json({ success: false, message: 'No configuration found in database' });
         }
 
-        const configData = typeof rows[0].config_json === 'string' ? JSON.parse(rows[0].config_json) : rows[0].config_json;
+        const rawConfig = rows[0].config_json;
         
-        // Cache the parsed result
+        // Cache the raw result
         cachedConfig = {
-            config: configData,
+            config: rawConfig,
             version: rows[0].id || 1
         };
 
-        res.json({ success: true, config: cachedConfig.config, version: cachedConfig.version });
+        const sanitized = sanitizeUrls(req, rawConfig);
+        res.json({ success: true, config: sanitized, version: cachedConfig.version });
     } catch (error) {
         console.error('DATABASE ERROR (GET /api/form/config):', error);
         if (error.code === 'ER_NO_SUCH_TABLE') {
@@ -180,8 +193,8 @@ app.get('/api/admin/form/config/latest', authenticateAdmin, async (req, res) => 
     try {
         const [rows] = await pool.execute('SELECT * FROM form_configs ORDER BY id DESC LIMIT 1');
         if (rows.length === 0) return res.status(404).json({ success: false });
-        const configData = typeof rows[0].config_json === 'string' ? JSON.parse(rows[0].config_json) : rows[0].config_json;
-        res.json({ success: true, config: configData });
+        const sanitized = sanitizeUrls(req, rows[0].config_json);
+        res.json({ success: true, config: sanitized });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -237,8 +250,8 @@ app.get('/api/admin/form/config/:id', authenticateAdmin, async (req, res) => {
     try {
         const [rows] = await pool.execute('SELECT * FROM form_configs WHERE id = ?', [req.params.id]);
         if (rows.length === 0) return res.status(404).json({ success: false });
-        const configData = typeof rows[0].config_json === 'string' ? JSON.parse(rows[0].config_json) : rows[0].config_json;
-        res.json({ success: true, config: configData });
+        const sanitized = sanitizeUrls(req, rows[0].config_json);
+        res.json({ success: true, config: sanitized });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -261,7 +274,7 @@ app.post('/api/form/submit', async (req, res) => {
         res.json({ success: true, message: 'Application submitted successfully!', id: result.insertId });
     } catch (error) {
         console.error('Error saving to MySQL:', error);
-        res.status(500).json({ success: false, message: 'Database error' });
+        res.status(500).json({ success: false, message: 'Database error', details: error.message });
     }
 });
 
