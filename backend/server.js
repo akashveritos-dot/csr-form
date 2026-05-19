@@ -113,6 +113,8 @@ const sanitizeUrls = (req, configJson) => {
     if (!host.includes('localhost')) {
         configStr = configStr.replace(/http:\/\/csr-form.onrender.com/g, 'https://csr-form.onrender.com');
     }
+    // Automatically swap out globally deprecated via.placeholder.com domains with modern working placehold.co
+    configStr = configStr.replace(/via\.placeholder\.com/g, 'placehold.co');
     return JSON.parse(configStr);
 };
 
