@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HeroStep, 
   EmailStep, 
@@ -18,6 +19,7 @@ const FormEngine = () => {
   const [config, setConfig] = useState(null);
   const [error, setError] = useState(null);
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const [isEditingFromReview, setIsEditingFromReview] = useState(false);
   const [formData, setFormData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,6 +70,7 @@ const FormEngine = () => {
   }, [fetchConfig]);
 
   const handleNext = () => {
+    setDirection(1);
     if (step === 0) {
       setStep(1);
       return;
@@ -80,8 +83,17 @@ const FormEngine = () => {
     }
   };
 
+  const handleBack = () => {
+    if (step > 0) {
+      setDirection(-1);
+      setStep(prev => prev - 1);
+      setIsEditingFromReview(false);
+    }
+  };
+
   const handleEditFromReview = (targetStep) => {
     setIsEditingFromReview(true);
+    setDirection(-1);
     setStep(targetStep);
   };
 
@@ -105,6 +117,7 @@ const FormEngine = () => {
       });
       const data = await response.json();
       if (data.success) {
+        setDirection(1);
         if (config) {
           setStep(config.steps.length - 1); // Jump to success
         } else {
@@ -119,7 +132,6 @@ const FormEngine = () => {
       setIsSubmitting(false);
     }
   };
-
 
   if (step > 0) {
     if (error) {
@@ -138,8 +150,8 @@ const FormEngine = () => {
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
           <div className="loader-content">
-            <div className="shimmer" style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 20px' }}></div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '1px' }}>PREPARING EXPERIENCE...</div>
+            <div className="premium-spinner"></div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '2px', color: 'var(--primary-color)' }}>PREPARING EXPERIENCE...</div>
           </div>
         </div>
       );
@@ -154,24 +166,26 @@ const FormEngine = () => {
     if (!config) return null;
 
     const currentStepConfig = config.steps[step];
+    const totalSteps = config.steps.length - 1; // Exclude success step in index counts for clean visual tracking
+
     switch (currentStepConfig.type) {
       case 'hero': return <HeroStep onNext={handleNext} />;
       case 'form': {
         const field = currentStepConfig.fields[0];
-        if (field.id === 'email') return <EmailStep value={formData.email} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'full_name') return <NameStep value={formData.full_name} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'designation') return <DesignationStep value={formData.designation} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'phone_number') return <PhoneStep value={formData.phone_number} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'organization_name') return <OrganizationStep value={formData.organization_name} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'selected_package') return <PackageSelectionStep value={formData.selected_package} onChange={handleChange} onNext={handleNext} />;
-        if (field.id === 'custom_query') return <CustomQueryStep value={formData.custom_query} onChange={handleChange} onNext={handleNext} />;
+        if (field.id === 'email') return <EmailStep value={formData.email} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'full_name') return <NameStep value={formData.full_name} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'designation') return <DesignationStep value={formData.designation} formData={formData} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'phone_number') return <PhoneStep value={formData.phone_number} formData={formData} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'organization_name') return <OrganizationStep value={formData.organization_name} formData={formData} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'selected_package') return <PackageSelectionStep value={formData.selected_package} formData={formData} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
+        if (field.id === 'custom_query') return <CustomQueryStep value={formData.custom_query} formData={formData} onChange={handleChange} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
         return null;
       }
       case 'event': {
-        return <DynamicEventStep config={currentStepConfig} onNext={handleNext} />;
+        return <DynamicEventStep config={currentStepConfig} onNext={handleNext} onBack={handleBack} index={step} totalSteps={totalSteps} />;
       }
       case 'review':
-        return <FinalReviewStep formData={formData} onEdit={handleEditFromReview} onSubmit={handleSubmit} isSubmitting={isSubmitting} />;
+        return <FinalReviewStep formData={formData} onEdit={handleEditFromReview} onSubmit={handleSubmit} isSubmitting={isSubmitting} onBack={handleBack} index={step} totalSteps={totalSteps} />;
       case 'success':
         return <SuccessStep />;
       default:
@@ -184,12 +198,48 @@ const FormEngine = () => {
     return (step / (config.steps.length - 1)) * 100;
   };
 
+  // Custom slide-fade variants for Step wizard
+  const pageVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+      scale: 0.97
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        x: { type: 'spring', stiffness: 260, damping: 28 },
+        opacity: { duration: 0.25 },
+        scale: { duration: 0.3 }
+      }
+    },
+    exit: (dir) => ({
+      x: dir < 0 ? 80 : -80,
+      opacity: 0,
+      scale: 0.97,
+      transition: {
+        x: { type: 'spring', stiffness: 260, damping: 28 },
+        opacity: { duration: 0.25 },
+        scale: { duration: 0.3 }
+      }
+    })
+  };
+
   return (
     <div className="app-container">
+      {/* Background ambient animation blobs */}
+      <div className="blob-container">
+        <div className="glow-blob blob-1"></div>
+        <div className="glow-blob blob-2"></div>
+        <div className="glow-blob blob-3"></div>
+      </div>
+      
       <div className="background-glow"></div>
       
-      <header style={{ padding: '0.75rem', display: 'flex', justifyContent: 'center', position: 'absolute', top: 0, width: '100%', zIndex: 50 }}>
-        <img src="https://thecsruniverse.com/assets/images/logo.png" alt="CSR" style={{ height: '35px' }} />
+      <header className="app-header">
+        <img src="https://thecsruniverse.com/assets/images/logo.png" alt="CSR Universe logo" className="app-logo" />
       </header>
 
       {config && step > 0 && step < config.steps.length - 1 && (
@@ -199,8 +249,21 @@ const FormEngine = () => {
       )}
 
       <main className="form-container">
-        {submitError && <div style={{ color: 'red', marginBottom: '1rem' }}>{submitError}</div>}
-        {renderDynamicStep()}
+        {submitError && <div className="error-msg" style={{ margin: '0 auto 1.5rem', justifyContent: 'center' }}>⚠️ {submitError}</div>}
+        
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={pageVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="step-wrapper"
+          >
+            {renderDynamicStep()}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

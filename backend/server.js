@@ -40,20 +40,44 @@ const upload = multer({ storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database connection pool
-const pool = mysql.createPool({
+const poolConfig = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 4000,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: {
-        minVersion: 'TLSv1.2',
-        rejectUnauthorized: false
-    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
+};
+
+// Defensive SSL check
+const dbHost = (process.env.DB_HOST || '').replace(/['"]/g, '').trim().toLowerCase();
+const dbSslEnv = (process.env.DB_SSL || '').replace(/['"]/g, '').trim().toLowerCase();
+
+console.log('🔍 Database connection parameters:');
+console.log('   - Host:', JSON.stringify(process.env.DB_HOST));
+console.log('   - Port:', process.env.DB_PORT);
+console.log('   - Database:', process.env.DB_NAME);
+
+let enableSsl = false;
+if (dbSslEnv === 'true') {
+    enableSsl = true;
+} else if (dbHost && dbHost !== 'localhost' && dbHost !== '127.0.0.1' && dbHost !== '::1' && dbSslEnv !== 'false') {
+    enableSsl = true;
+}
+
+if (enableSsl) {
+    console.log('🔒 Database SSL: ENABLED');
+    poolConfig.ssl = {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: false
+    };
+} else {
+    console.log('🔓 Database SSL: DISABLED');
+}
+
+const pool = mysql.createPool(poolConfig);
 
 // Test connection on startup
 pool.getConnection()
